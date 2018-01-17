@@ -55,9 +55,9 @@ config = {
 ```
 ├── json                       # 接口返回數據
 │   └── get
-│   	└── ...                # 父節點
-│   		└── ...			   # json文件
-│   	└── ...		  	       # json文件
+│       └── ...                # 父節點
+│           └── ...			   # json文件
+│       └── ...		  	       # json文件
 │   └── post
 ├── upload                     # 上傳下載文件目錄
 └── server.js                  # 文件
@@ -77,9 +77,9 @@ config = {
 ```
 ├── json                        # 接口返回數據
 │   └── get
-│   	└── user
-│   		└── userInfo.json   # ::/user/userInfo
-│   	└── user@myUser.json    # ::/user/myUser
+│       └── user
+│           └── userInfo.json   # ::/user/userInfo
+│       └── user@myUser.json    # ::/user/myUser
 ```
 
 通用返回格式：
@@ -103,11 +103,11 @@ config = {
 ```js
 {
 	resultCode: '000000',
-    resultMsg: '成功',
-    data: {
-        base64: buf.toString('base64'),
-        attachementNo: req.file.filename // 一般應為ID，不建數據庫就直接用名字吧
-    }
+	resultMsg: '成功',
+	data: {
+		base64: buf.toString('base64'),
+		attachementNo: req.file.filename // 一般應為ID，不建數據庫就直接用名字吧
+	}
 }
 ```
 
