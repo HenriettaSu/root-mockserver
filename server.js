@@ -3,7 +3,17 @@
  */
 
 const config = require('./config.js'),
+    unirest = require('unirest'),
+    Pac = require('node-pac'),
     express = require('express'),
+    errorHandler = require('express-error-handler'),
+    handler = errorHandler({
+        handlers: {
+            '404': (err, req, res) => {
+                trans(req.body, res, req.url);
+            }
+        }
+    }),
     app = express(),
     fs = require('fs'),
     glob = require('glob'),
@@ -33,12 +43,14 @@ log4js.configure({
     categories: {
         http: { appenders: ['console'], level: 'info' },
         params: { appenders: ['console'], level: 'mark' },
+        warner: { appenders: ['console'], level: 'warn' },
         default: { appenders: ['console'], level: 'info' }
     }
 });
 
 let connectLogger = log4js.getLogger('http'),
-    logger = log4js.getLogger('params');
+    logger = log4js.getLogger('params'),
+    warner = log4js.getLogger('warner');
 app.use(log4js.connectLogger(connectLogger, {
     level: 'auto',
     format (req, res, str) {
@@ -56,18 +68,49 @@ app.all('*', (req, res, next) => {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept" + accessControlAllowHeaders);
     next();
 });
+app.use(errorHandler.httpError(404));
+app.use(handler);
 
 let server,
     fsReader = (req, res, filepath) => {
         fs.readFile(__dirname + '/' + filepath, 'utf8', (err, data) => {
-            let ret = {
-                resultCode: config.successCode,
-                resultMsg: '成功',
-                data: JSON.parse(data)
-            }
-            res.send(ret);
+            res.send(data);
             res.end();
         });
+    },
+    passProxy = (data, mockRes, Request) => {
+        if (config.proxyUrl) {
+            Request.proxy(config.proxyUrl);
+            getRequest(data, mockRes, Request);
+        } else {
+            let pac = new Pac(config.pac);
+            pac.FindWhistleProxyForURL(config.transHost, (err, res) => {
+                let proxy = 'http://' + res.split('//')[1];
+                Request.proxy(proxy);
+                getRequest(data, mockRes, Request);
+            });
+        }
+    },
+    getRequest = (data, mockRes, Request) => {
+        Request.form(data).end((response) => {
+            if (response.statusCode === 200) {
+                logger.mark(response.body);
+                mockRes.send(response.body);
+                mockRes.end();
+            } else {
+                mockRes.send(response.statusCode);
+                mockRes.end();
+            }
+        })
+    },
+    trans = (data, mockRes, url) => {
+        let Request = unirest.post(config.transHost + config.transPath + url);
+        warner.warn('mockserver沒有這個接口，轉發到' + config.transHost + config.transPath + url + '中');
+        if (config.useProxy) {
+            passProxy(data, mockRes, Request);
+        } else {
+            getRequest(data, mockRes, Request);
+        }
     },
     createApi = () => { // 一般接口
         let files = glob.sync('json/**/**.json', {matchBase:true});
@@ -97,7 +140,7 @@ let server,
             logger.info(req.body);
             let buf = fs.readFileSync(__dirname + '/' + req.file.path);
             res.write(JSON.stringify({
-                resultCode: config.successCode,
+                resultCode: "000000",
                 resultMsg: '成功',
                 data: {
                     base64: buf.toString('base64'),
@@ -133,7 +176,7 @@ let server,
                 buf = fs.readFileSync(__dirname + '/upload/' + params.attachementNo);
             logger.info(req.query);
             res.write(JSON.stringify({
-                resultCode: config.successCode,
+                resultCode: "000000",
                 resultMsg: '成功',
                 data: {
                     base64: buf.toString('base64')
@@ -152,6 +195,6 @@ downloadApi();
 console.log('========== 創建完畢 ==========\n');
 
 server = app.listen(config.port, () => {
-    var port = server.address().port;
+    let port = server.address().port;
     console.log('致Root。服務器地址：127.0.0.1:' + port + '\n');
 });

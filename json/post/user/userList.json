@@ -1,10 +1,14 @@
-[
-  {
-    "name": "Henrie",
-    "age": 24
-  },
-  {
-    "name": "Marian",
-    "age": 18
-  }
-]
+{
+  "resultCode": "000000",
+  "resultMsg": "成功",
+  "data": [
+    {
+      "name": "Henrie",
+      "age": 24
+    },
+    {
+      "name": "Marian",
+      "age": 18
+    }
+  ]
+}

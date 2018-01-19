@@ -1,10 +1,10 @@
-# root-mockserver ver 0.0.2
+# root-mockserver ver 0.0.3
 
 > 致Root。
 
-real簡陋的基於node + express的mockserver
+real簡陋的基於node + express的mockserver，支持跨域，支持轉發，支持代理，無論項目做到哪了，都可以低本轉換，馬上使用
 
-大部分人開發的時候都是習慣將假數據寫在項目文件內，so就根據這個習慣，不做界面，直接以json文件來管理假數據，放到目錄裡自動生成接口。可能會另外做數據庫版
+大部分人開發的時候都是習慣將假數據寫在項目文件內，so就根據這個習慣，不做界面，直接以json文件來管理假數據，放到目錄裡自動生成接口
 
 媽媽再也不用擔心我不是被接口卡死，就是被代碼裡大片屏蔽的假數據逼死
 
@@ -12,11 +12,11 @@ real簡陋的基於node + express的mockserver
 
 ## 最近更新
 
-ver 0.0.2
+ver 0.0.3
 
-1. 接口地址支持多父節點；
-2. 可配置化；
-3. 增加請求日誌；
+1. 增加轉發功能；
+2. 增加錯誤處理；
+3. 普通接口返回格式不再固定；
 
 ## 安裝
 
@@ -42,11 +42,15 @@ npm start
 config = {
     port: 8084,
     accessControlAllowHeaders: 'Authorization, userToken', // 自定義請求頭
-    successCode: '000000', // 成功返回碼
     uploadName: 'myfile', // 上傳文件name屬性
     uploadUrl: '/attachement/upload', // 上傳url
     downloadFileUrl: '/attachement/downloadFile', // 下載地址（流）
     downloadBase64Url: '/attachement/downloadBase64' // 下載地址（base64）
+    transHost: 'https://www.google.de', // 轉發host
+    transPath: '', // 轉發path
+    useProxy: false, // 轉發是否使用代理（若為true，proxyUrl和pac必填一項）
+    proxyUrl: '', // 代理地址
+    pac: '' // pac處理代理
 };
 ```
 
@@ -82,16 +86,6 @@ config = {
 │       └── user@myUser.json    # ::/user/myUser
 ```
 
-通用返回格式：
-
-```js
-{
-    resultCode: '000000',
-    resultMsg: '成功',
-    data: json
-}
-```
-
 ### 上傳接口
 
 接口名：默認 `/attachement/upload`
@@ -102,12 +96,12 @@ config = {
 
 ```js
 {
-	resultCode: '000000',
-	resultMsg: '成功',
-	data: {
-		base64: buf.toString('base64'),
-		attachementNo: req.file.filename // 一般應為ID，不建數據庫就直接用名字吧
-	}
+    resultCode: '000000',
+    resultMsg: '成功',
+    data: {
+        base64: buf.toString('base64'),
+        attachementNo: req.file.filename // 一般應為ID，不建數據庫就直接用名字吧
+    }
 }
 ```
 
@@ -127,11 +121,11 @@ config = {
 
 ```js
 {
-	resultCode: '000000',
-	resultMsg: '成功',
-	data: {
-		base64: buf.toString('base64')
-	}
+    resultCode: '000000',
+    resultMsg: '成功',
+    data: {
+        base64: buf.toString('base64')
+    }
 }
 ```
 
@@ -141,11 +135,38 @@ config = {
 
 修改自定義請求頭在 `config.js` 中
 
+## 轉發
+
+```js
+// config.js
+config = {
+    transHost: 'https://www.google.de', // 轉發host
+    transPath: '/whateverOrJustEmpty', // 轉發path
+}
+```
+
+如果mockserver中沒有請求的接口，就轉發到項目地址中，去取項目中已有的接口數據
+
+### 代理
+
+更坑爹的問題是網絡環境限制，平時訪問接口地址就需要通過代理怎麼辦（。
+
+沒關係，我們一起做紅杏程序員
+
+```js
+// config.js
+config = {
+    useProxy: true, // 轉發是否使用代理（若為true，proxyUrl和pac必填一項）
+    proxyUrl: '', // 代理地址（從瀏覽器設置裡找，如：http://127.0.0.1:8888）
+    pac: '' // pac處理代理（從瀏覽器設置裡找）
+}
+```
+
 ## TODO
 
 - [x] 接口增加二級分類；
 - [x] 可配置化；
-- [ ] 錯誤處理；
+- [x] 錯誤處理；
 
 ## 聯繫與討論
 
