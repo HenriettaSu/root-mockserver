@@ -66,14 +66,17 @@ app.all('*', (req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*"); // 跨域
     res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT"); // 跨域
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept" + accessControlAllowHeaders);
-    next();
+    if ('OPTIONS' === req.method) {
+        res.send(200);
+    } else {
+        next();
+    }
 });
-app.use(errorHandler.httpError(404));
-app.use(handler);
 
 let server,
     fsReader = (req, res, filepath) => {
         fs.readFile(__dirname + '/' + filepath, 'utf8', (err, data) => {
+            // 出参在這裡
             res.send(data);
             res.end();
         });
@@ -121,12 +124,14 @@ let server,
             switch (type) {
                 case 'post':
                     app.post(url, (req, res) => {
+                        // 入参在這裡
                         logger.mark(req.body);
                         fsReader(req, res, filepath);
                     });
                     break;
                 case 'get':
                     app.get(url, (req, res) => {
+                        // 入参在這裡
                         logger.mark(req.query);
                         fsReader(req, res, filepath);
                     });
@@ -193,6 +198,9 @@ createApi();
 uploadApi();
 downloadApi();
 console.log('========== 創建完畢 ==========\n');
+
+app.use(errorHandler.httpError(404));
+app.use(handler);
 
 server = app.listen(config.port, () => {
     let port = server.address().port;
