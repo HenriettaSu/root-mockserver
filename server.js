@@ -66,8 +66,12 @@ app.all('*', (req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*"); // 跨域
     res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT"); // 跨域
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept" + accessControlAllowHeaders);
+    let pathname = req._parsedUrl.pathname;
     if ('OPTIONS' === req.method) {
         res.send(200);
+    } else if (pathname !== config.uploadUrl && pathname !== config.downloadFileUrl && pathname !== config.downloadBase64Url) {
+        let path = 'json/' + req.method.toLowerCase() + pathname + '.json';
+        fsReader(req, res, path);
     } else {
         next();
     }
@@ -76,9 +80,13 @@ app.all('*', (req, res, next) => {
 let server,
     fsReader = (req, res, filepath) => {
         fs.readFile(__dirname + '/' + filepath, 'utf8', (err, data) => {
-            // 出参在這裡
-            res.send(data);
-            res.end();
+            if (err) {
+                trans(req.body, res, req.url);
+            } else {
+                // 出参在這裡
+                res.send(data);
+                res.end();
+            }
         });
     },
     passProxy = (data, mockRes, Request) => {
@@ -115,31 +123,6 @@ let server,
             getRequest(data, mockRes, Request);
         }
     },
-    createApi = () => { // 一般接口
-        let files = glob.sync('json/**/**.json', {matchBase:true});
-        files.forEach((filepath) => {
-            let split = filepath.split('/'),
-                type = split[1],
-                url = filepath.replace('json/', '').replace(type, '').replace('.json', '').replace(/@/g, '/');
-            switch (type) {
-                case 'post':
-                    app.post(url, (req, res) => {
-                        // 入参在這裡
-                        logger.mark(req.body);
-                        fsReader(req, res, filepath);
-                    });
-                    break;
-                case 'get':
-                    app.get(url, (req, res) => {
-                        // 入参在這裡
-                        logger.mark(req.query);
-                        fsReader(req, res, filepath);
-                    });
-                    break;
-            }
-            console.log(url);
-        });
-    },
     uploadApi = () => { // 上傳接口
         app.post(config.uploadUrl, uploader.single(config.uploadName), (req, res) => {
             logger.info(req.body);
@@ -163,30 +146,50 @@ let server,
                 fReadStream;
             logger.info(req.query);
             fs.readFile(__dirname + filepath, 'utf8', (err, data) => {
-                res.set({
-                    "Content-type":"application/octet-stream",
-                    "Content-Disposition":"attachment;filename=" + encodeURI(params.attachementNo)
-                });
-                fReadStream = fs.createReadStream(__dirname + filepath);
-                fReadStream.on('data', (chunk) => {
-                    res.write(chunk, 'binary');
-                });
-                fReadStream.on('end', () => {
+                if (err) {
+                    console.log(err);
+                    res.write(JSON.stringify({
+                        resultCode: "999999",
+                        resultMsg: '失敗'
+                    }));
                     res.end();
-                });
+                } else {
+                    res.set({
+                        "Content-type":"application/octet-stream",
+                        "Content-Disposition":"attachment;filename=" + encodeURI(params.attachementNo)
+                    });
+                    fReadStream = fs.createReadStream(__dirname + filepath);
+                    fReadStream.on('data', (chunk) => {
+                        res.write(chunk, 'binary');
+                    });
+                    fReadStream.on('end', () => {
+                        res.end();
+                    });
+                }
             });
         });
         app.get(config.downloadBase64Url, (req, res) => {
             let params = JSON.parse(req.query.params),
-                buf = fs.readFileSync(__dirname + '/upload/' + params.attachementNo);
+                buf,
+                opt;
             logger.info(req.query);
-            res.write(JSON.stringify({
-                resultCode: "000000",
-                resultMsg: '成功',
-                data: {
-                    base64: buf.toString('base64')
+            try {
+                buf = fs.readFileSync(__dirname + '/upload/' + params.attachementNo);
+                opt = {
+                    resultCode: "000000",
+                    resultMsg: '成功',
+                    data: {
+                        base64: buf.toString('base64')
+                    }
                 }
-            }));
+            } catch (e) {
+                opt = {
+                    resultCode: "999999",
+                    resultMsg: e.code,
+                    data: e
+                }
+            }
+            res.write(JSON.stringify(opt));
             res.end();
         });
         console.log(config.downloadFileUrl);
@@ -194,7 +197,6 @@ let server,
     };
 
 console.log('======== 創建以下接口 ========');
-createApi();
 uploadApi();
 downloadApi();
 console.log('========== 創建完畢 ==========\n');

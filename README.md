@@ -1,4 +1,4 @@
-# root-mockserver ver 0.0.4
+# root-mockserver ver 0.0.5
 
 > 致Root。
 
@@ -12,10 +12,11 @@ real簡陋的基於node + express的mockserver，支持跨域，支持轉發，�
 
 ## 最近更新
 
-ver 0.0.4
+ver 0.0.5
 
-1. OPTIONS請求無需轉發；
-2. 修復錯誤處理中間件把正常請求也攔截轉發bug；
+1. 廢棄 `createApi()` 方法，增加新json文件（接口）無需重啟服務；
+2. 考慮到文件的可管理性，廢棄 `user@userInfo.json` 文件命名形式；
+3. 下載接口增加錯誤處理；
 
 ## 安裝
 
@@ -72,9 +73,9 @@ config = {
 
 接口根據 `json` 目錄下的文件自動生成，以method為分類，文件名即為接口名字（如127.0.0.1:8084/userInfo），內容為返回data
 
-若地址需要父節點，有兩種方法（以get請求user/userInfo為例）：
+若地址需要父節點~~，有兩種方法~~（以get請求user/userInfo為例）：
 
-1. 在get目錄下創建 `user@userInfo.json` 文件，@將被自動轉換成/；
+1. ~~在get目錄下創建 `user@userInfo.json` 文件，@將被自動轉換成/；~~
 2. 在get目錄下創建user文件夾，並將 `user.json` 文件置於其下；
 
 ```
@@ -82,7 +83,6 @@ config = {
 │   └── get
 │       └── user
 │           └── userInfo.json   # ::/user/userInfo
-│       └── user@myUser.json    # ::/user/myUser
 ```
 
 ### 上傳接口
