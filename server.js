@@ -103,19 +103,34 @@ let server,
         }
     },
     getRequest = (data, mockRes, Request) => {
-        Request.form(data).end((response) => {
-            if (response.statusCode === 200) {
-                logger.mark(response.body);
-                mockRes.send(response.body);
-                mockRes.end();
-            } else {
-                mockRes.send(response.statusCode);
-                mockRes.end();
-            }
-        })
+        switch (config.transProtocol) {
+            case 'json':
+                Request.send(data).end((response) => {
+                    if (response.statusCode === 200) {
+                        logger.mark(response.body);
+                        mockRes.send(response.body);
+                        mockRes.end();
+                    } else {
+                        mockRes.send(response.statusCode);
+                        mockRes.end();
+                    }
+                });
+                break;
+            default:
+                Request.form(data).end((response) => {
+                    if (response.statusCode === 200) {
+                        logger.mark(response.body);
+                        mockRes.send(response.body);
+                        mockRes.end();
+                    } else {
+                        mockRes.send(response.statusCode);
+                        mockRes.end();
+                    }
+                });
+        }
     },
     trans = (data, mockRes, url) => {
-        let Request = unirest.post(config.transHost + config.transPath + url);
+        let Request = unirest.post(config.transHost + config.transPath + url).headers(config.transHeaders);
         warner.warn('mockserver沒有這個接口，轉發到' + config.transHost + config.transPath + url + '中');
         if (config.useProxy) {
             passProxy(data, mockRes, Request);

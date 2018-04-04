@@ -1,4 +1,4 @@
-# root-mockserver ver 0.0.5
+# root-mockserver ver 0.0.6
 
 > 致Root。
 
@@ -8,15 +8,15 @@ real簡陋的基於node + express的mockserver，支持跨域，支持轉發，�
 
 媽媽再也不用擔心我不是被接口卡死，就是被代碼裡大片屏蔽的假數據逼死
 
+還能解決本地連真實環境造成的跨域問題
+
 僅做最簡單的拿數據，request做解密、response做加密、分頁⋯⋯自行根據項目需求擴展。有數據，真的可以為所欲為www
 
 ## 最近更新
 
-ver 0.0.5
+ver 0.0.6
 
-1. 廢棄 `createApi()` 方法，增加新json文件（接口）無需重啟服務；
-2. 考慮到文件的可管理性，廢棄 `user@userInfo.json` 文件命名形式；
-3. 下載接口增加錯誤處理；
+1. 增加 `application/json` 請求體支持；
 
 ## 安裝
 
@@ -48,6 +48,11 @@ config = {
     downloadBase64Url: '/attachement/downloadBase64' // 下載地址（base64）
     transHost: 'https://www.google.de', // 轉發host
     transPath: '', // 轉發path
+    transProtocol: 'json', // 轉發post請求體，默認（為空）為form，若為json需與transHeaders配合修改
+    transHeaders: { // 轉發請求頭
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    }, // headers
     useProxy: false, // 轉發是否使用代理（若為true，proxyUrl和pac必填一項）
     proxyUrl: '', // 代理地址
     pac: '' // pac處理代理
