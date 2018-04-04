@@ -8,8 +8,8 @@ const config = {
     uploadUrl: '/attachement/upload', // 上傳url
     downloadFileUrl: '/attachement/downloadFile', // 下載地址（流）
     downloadBase64Url: '/attachement/downloadBase64', // 下載地址（base64）
-    transHost: 'https://fls-mflm.pa18.com', // 轉發host
-    transPath: '/xw/paxw_server2', // 轉發path
+    transHost: 'https://www.google.de', // 轉發host
+    transPath: '', // 轉發path
     transProtocol: 'json', // 轉發post請求體，默認（為空）為form，若為json需與transHeaders配合修改
     transHeaders: { // 轉發請求頭
         'Accept': 'application/json',
