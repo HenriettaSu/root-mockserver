@@ -1,3 +1,7 @@
+## ver 0.0.6
+
+1. 增加 `application/json` 請求體支持；
+
 ## ver 0.0.5
 
 1. 廢棄 `createApi()` 方法，增加新json文件（接口）無需重啟服務；

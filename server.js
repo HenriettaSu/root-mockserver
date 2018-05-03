@@ -4,6 +4,7 @@
 
 const config = require('./config.js'),
     unirest = require('unirest'),
+    CookieJar = unirest.jar(),
     Pac = require('node-pac'),
     express = require('express'),
     errorHandler = require('express-error-handler'),
@@ -107,6 +108,7 @@ let server,
             case 'json':
                 Request.send(data).end((response) => {
                     if (response.statusCode === 200) {
+                        setCookies(response);
                         logger.mark(response.body);
                         mockRes.send(response.body);
                         mockRes.end();
@@ -119,6 +121,7 @@ let server,
             default:
                 Request.form(data).end((response) => {
                     if (response.statusCode === 200) {
+                        setCookies(response);
                         logger.mark(response.body);
                         mockRes.send(response.body);
                         mockRes.end();
@@ -129,8 +132,16 @@ let server,
                 });
         }
     },
+    setCookies = (response) => {
+        let cookies = response.headers['set-cookie'],
+            cookie;
+        for (let i = 0; i < cookies.length; i++) {
+            cookie = cookies[i];
+            CookieJar.add(cookie.split(';')[0], '/');
+        }
+    },
     trans = (data, mockRes, url) => {
-        let Request = unirest.post(config.transHost + config.transPath + url).headers(config.transHeaders);
+        let Request = unirest.post(config.transHost + config.transPath + url).headers(config.transHeaders).jar(CookieJar);
         warner.warn('mockserver沒有這個接口，轉發到' + config.transHost + config.transPath + url + '中');
         if (config.useProxy) {
             passProxy(data, mockRes, Request);

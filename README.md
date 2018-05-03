@@ -1,4 +1,4 @@
-# root-mockserver ver 0.0.6
+# root-mockserver ver 0.0.7
 
 > 致Root。
 
@@ -14,9 +14,9 @@ real簡陋的基於node + express的mockserver，支持跨域，支持轉發，�
 
 ## 最近更新
 
-ver 0.0.6
+ver 0.0.7
 
-1. 增加 `application/json` 請求體支持；
+1. 增加 `cookie` 以保持會話狀態；
 
 ## 安裝
 
@@ -171,6 +171,7 @@ config = {
 - [x] 接口增加二級分類；
 - [x] 可配置化；
 - [x] 錯誤處理；
+- [ ] post請求文件轉發；
 
 ## 聯繫與討論
 
