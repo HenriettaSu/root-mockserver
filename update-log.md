@@ -1,3 +1,7 @@
+## ver 0.0.7
+
+1. 增加 `cookie` 以保持會話狀態；
+
 ## ver 0.0.6
 
 1. 增加 `application/json` 請求體支持；

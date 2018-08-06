@@ -1,4 +1,4 @@
-# root-mockserver ver 0.0.7
+# root-mockserver ver 0.0.8
 
 > 致Root。
 
@@ -14,9 +14,10 @@ real簡陋的基於node + express的mockserver，支持跨域，支持轉發，�
 
 ## 最近更新
 
-ver 0.0.7
+ver 0.0.8
 
-1. 增加 `cookie` 以保持會話狀態；
+1. 優化了一下代碼，POST和GET方法合併成一個；
+2. 文件流也可以轉發了；
 
 ## 安裝
 
@@ -48,7 +49,6 @@ config = {
     downloadBase64Url: '/attachement/downloadBase64' // 下載地址（base64）
     transHost: 'https://www.google.de', // 轉發host
     transPath: '', // 轉發path
-    transProtocol: 'json', // 轉發post請求體，默認（為空）為form，若為json需與transHeaders配合修改
     transHeaders: { // 轉發請求頭
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -171,7 +171,7 @@ config = {
 - [x] 接口增加二級分類；
 - [x] 可配置化；
 - [x] 錯誤處理；
-- [ ] post請求文件轉發；
+- [x] post請求文件轉發；
 
 ## 聯繫與討論
 

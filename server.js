@@ -104,44 +104,39 @@ let server,
         }
     },
     getRequest = (data, mockRes, Request) => {
-        switch (config.transProtocol) {
-            case 'json':
-                Request.send(data).end((response) => {
-                    if (response.statusCode === 200) {
-                        setCookies(response);
-                        logger.mark(response.body);
-                        mockRes.send(response.body);
-                        mockRes.end();
-                    } else {
-                        mockRes.send(response.statusCode);
-                        mockRes.end();
-                    }
-                });
-                break;
-            default:
-                Request.form(data).end((response) => {
-                    if (response.statusCode === 200) {
-                        setCookies(response);
-                        logger.mark(response.body);
-                        mockRes.send(response.body);
-                        mockRes.end();
-                    } else {
-                        mockRes.send(response.statusCode);
-                        mockRes.end();
-                    }
-                });
-        }
+        Request.send(data).end((res) => {
+            let dis = res.headers['content-disposition'];
+            if (dis && dis.search('attachment') > -1) {
+                logger.mark(res.headers['content-disposition']);
+            } else {
+                logger.mark(res.body);
+            }
+            mockRes.set(res.headers);
+            setCookies(res);
+            mockRes.send(res.body);
+            mockRes.end();
+        });
     },
     setCookies = (response) => {
         let cookies = response.headers['set-cookie'],
             cookie;
+        if (!cookies) return;
         for (let i = 0; i < cookies.length; i++) {
             cookie = cookies[i];
             CookieJar.add(cookie.split(';')[0], '/');
         }
     },
     trans = (data, mockRes, url) => {
-        let Request = unirest.post(config.transHost + config.transPath + url).headers(config.transHeaders).jar(CookieJar);
+        let Request = null,
+            method = mockRes.req.method;
+        switch (method) {
+            case 'GET':
+                Request = unirest.get(config.transHost + config.transPath + url).headers(config.transHeaders).jar(CookieJar);
+                break;
+            case 'POST':
+                Request = unirest.post(config.transHost + config.transPath + url).headers(config.transHeaders).jar(CookieJar);
+                break;
+        }
         warner.warn('mockserver沒有這個接口，轉發到' + config.transHost + config.transPath + url + '中');
         if (config.useProxy) {
             passProxy(data, mockRes, Request);
