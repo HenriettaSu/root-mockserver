@@ -4,6 +4,7 @@
 const config = {
     port: 8100,
     accessControlAllowHeaders: 'Authorization, userToken', // 自定義請求頭
+    withCredentials: false, // 跨域提供憑證
     uploadName: 'myfile', // 上傳文件name屬性
     uploadUrl: '/attachement/upload', // 上傳url
     downloadFileUrl: '/attachement/downloadFile', // 下載地址（流）

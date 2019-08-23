@@ -1,4 +1,4 @@
-# root-mockserver ver 0.0.8
+# root-mockserver ver 0.0.9
 
 > 致Root。
 
@@ -14,10 +14,9 @@ real簡陋的基於node + express的mockserver，支持跨域，支持轉發，�
 
 ## 最近更新
 
-ver 0.0.8
+ver 0.0.9
 
-1. 優化了一下代碼，POST和GET方法合併成一個；
-2. 文件流也可以轉發了；
+1. 增加 `withCredentials` 配置屬性
 
 ## 安裝
 
@@ -43,6 +42,7 @@ npm start
 config = {
     port: 8084,
     accessControlAllowHeaders: 'Authorization, userToken', // 自定義請求頭
+    withCredentials: false, // 跨域提供憑證
     uploadName: 'myfile', // 上傳文件name屬性
     uploadUrl: '/attachement/upload', // 上傳url
     downloadFileUrl: '/attachement/downloadFile', // 下載地址（流）
@@ -78,10 +78,9 @@ config = {
 
 接口根據 `json` 目錄下的文件自動生成，以method為分類，文件名即為接口名字（如127.0.0.1:8084/userInfo），內容為返回data
 
-若地址需要父節點~~，有兩種方法~~（以get請求user/userInfo為例）：
+若地址需要父節點（以get請求user/userInfo為例）：
 
-1. ~~在get目錄下創建 `user@userInfo.json` 文件，@將被自動轉換成/；~~
-2. 在get目錄下創建user文件夾，並將 `user.json` 文件置於其下；
+在get目錄下創建user文件夾，並將 `user.json` 文件置於其下；
 
 ```
 ├── json                        # 接口返回數據

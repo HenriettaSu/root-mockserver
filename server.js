@@ -61,11 +61,12 @@ app.use(log4js.connectLogger(connectLogger, {
     }
 }));
 
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.all('*', (req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*"); // 跨域
+    res.header("Access-Control-Allow-Origin", req.headers.origin); // 跨域
     res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT"); // 跨域
+    config.withCredentials && res.header("Access-Control-Allow-Credentials", "true"); // 跨域
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept" + accessControlAllowHeaders);
     let pathname = req._parsedUrl.pathname;
     if ('OPTIONS' === req.method) {
@@ -128,13 +129,21 @@ let server,
     },
     trans = (data, mockRes, url) => {
         let Request = null,
-            method = mockRes.req.method;
+            method = mockRes.req.method,
+            headers = config.transHeaders,
+            headersKeys = accessControlAllowHeaders.split(',');
+        for (let i = 0; i < headersKeys.length; i++) {
+            let key = headersKeys[i].trim();
+            if (key) {
+                headers[key] = headersKeys[key] || '';
+            }
+        }
         switch (method) {
             case 'GET':
-                Request = unirest.get(config.transHost + config.transPath + url).headers(config.transHeaders).jar(CookieJar);
+                Request = unirest.get(config.transHost + config.transPath + url).headers(headers).jar(CookieJar);
                 break;
             case 'POST':
-                Request = unirest.post(config.transHost + config.transPath + url).headers(config.transHeaders).jar(CookieJar);
+                Request = unirest.post(config.transHost + config.transPath + url).headers(headers).jar(CookieJar);
                 break;
         }
         warner.warn('mockserver沒有這個接口，轉發到' + config.transHost + config.transPath + url + '中');
